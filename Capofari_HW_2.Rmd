@@ -1,0 +1,203 @@
+---
+title: "NYC Building Data Exploration"
+author: "Nicholas Capofari"
+date: "March 4, 2016"
+output: 
+  html_document:
+    theme: united
+    toc: true
+---
+
+```{r echo=FALSE, include=FALSE}
+#load all neccessary libraries
+library(dplyr)
+library(data.table)
+library(bit64)
+library(ggplot2)
+library(gridExtra)
+library(bigvis)
+library(knitr)
+library(stringr)
+library(scales)
+```
+
+###Combining the Data
+
+```{r cache=TRUE}
+#using system() to run bash commands in R
+#used the csvkit by Christopher Groskopf
+#my first bash scripting experience!
+system(paste("cd ", getwd(), "/nyc_pluto_15v1", sep=""))
+#list of boros
+boros = c("BK","BX","Mn","QN","SI")
+#create empty data frame to fill with data
+build_data = data_frame()
+#same procedure for each borough file
+for(each in boros){ 
+  #select the columns I want to use for this homework
+  columns = "Borough,ZipCode,YearBuilt,NumFloors,AssessLand,AssessTot"
+  bash_script = sprintf("csvcut -c %s nyc_pluto_15v1/%s.csv > temp%s.csv", 
+                        columns, each, each)
+  #run the bash script
+  system(bash_script)
+  #create full file name
+  file_name = paste("temp", each, ".csv", sep="")
+  #using data.table's fread function
+  temp_data = fread(file_name, data.table=FALSE)
+  #combine the data with all boroughs, only years after 1850 and none from the future
+  build_data = rbind(build_data, filter(temp_data, 
+                                        YearBuilt > 1850, 
+                                        YearBuilt < 2016)) 
+}
+#sample data to see if this worked
+kable(build_data[sample(nrow(build_data), 5),])
+```
+
+###Example #1
+
+```{r, comment=FALSE, message=FALSE, warning=FALSE}
+#remove bad data
+build_data = build_data[complete.cases(build_data),]
+build_data = build_data %>% filter(NumFloors > 0, 
+                                   AssessLand > 0, 
+                                   AssessLand > 0)
+
+#use bigvis to condense the data
+year_built = condense(bin(build_data$YearBuilt, 1))
+
+#use ggplot2 to make a chart
+pa = autoplot(year_built) 
+pa = pa + xlab("Year") + ylab("Number of Buildings") 
+pa = pa + ggtitle("Building Construction by Date")
+ggsave("Capofari_HW2_1a.jpeg")
+pa
+```
+
+This seems odd.  Due to the spikes in the chart, I believe the year's these buildings were built is not accurate.  If we zoom in to see a 20 year span, we can clearly see that the year's used are dominated by multiples of 5s.  A smoother curve is generated when the building data is maintained yearly, like it is over the last 20 years.  Also, it seems that an overwhelming amount of buildings were built in 1925, which seems incorrect.
+
+```{r, comment=FALSE, message=FALSE, warning=FALSE}
+pb = autoplot(year_built[which(year_built > 1909 & 
+                                 year_built < 1941),])
+pb = pb + ylab("Number of Buildings") + xlab("Year") 
+pb = pb + ggtitle("Building Construction:\n1930 to 1950")
+ggsave("Capofari_HW2_1b.jpeg")
+
+pc = autoplot(year_built[year_built > 1984,])
+pc = pc + ylab("") + xlab("Year") 
+pc = pc + ggtitle("Building Construction:\n1985 to the Present")
+ggsave("Capofari_HW2_1c.jpeg")
+
+#create a side by side plot
+grid.arrange(pb,pc,ncol=2)
+```
+
+By increasing the size of the bins using the condense function from the bigvis package, we can remove the spikes that were present in our oriinal chart.  
+
+```{r, comment=FALSE, message=FALSE, warning=FALSE}
+#to find the 'cut off' date, find the total houses built / 2
+total = max(cumsum(year_built$.count))
+cutoff = ceiling(total / 2)
+#find the year where the cumsum is > than the cutoff total
+cutoff_year = year_built[cumsum(year_built$.count) > cutoff,][1,1][[1]]
+
+year_built_10 = condense(bin(build_data$YearBuilt, 10))
+pd = autoplot(year_built_10) 
+pd = pd + xlab("Number of Buildings") + ylab("Year") 
+pd = pd + ggtitle("Building Construction by Date")
+pd = pd + geom_vline(xintercept=cutoff_year, 
+                     color="red", linetype="longdash")
+pd = pd + annotate("text", x=1933, y=182000, 
+                   color="red",
+                   hjust=0,
+                   label=paste(
+                     "Half of all buildings\nwere built after", 
+                     cutoff_year))
+ggsave("Capofari_HW2_1d.jpeg")
+pd
+```
+
+###Example #2
+
+```{r, comment=FALSE, message=FALSE, warning=FALSE}
+#too much empty space from 1850-1900
+#I am going to maximize ink on the page
+floor_df = build_data %>% 
+  filter(YearBuilt > 1900) %>%
+  #look at building floors grouped by 20
+  mutate(floor_group=floor(NumFloors / 10)) %>% 
+  group_by(YearBuilt, floor_group) %>% 
+  summarize(n=length(YearBuilt))
+#group all buildings over 49 floors together
+floor_df$floor_group[floor_df$floor_group > 4] = 5
+#column for labeling
+floor_df$labels = character(nrow(floor_df))
+floor_df$labels[floor_df$floor_group == 0] = "10 and less"
+floor_df$labels[floor_df$floor_group == 1] = "10-19"
+floor_df$labels[floor_df$floor_group == 2] = "20-29"
+floor_df$labels[floor_df$floor_group == 3] = "30-39"
+floor_df$labels[floor_df$floor_group == 4] = "40-49"
+floor_df$labels[floor_df$floor_group == 5] = "50 and more"
+
+floor_chart = ggplot(data=floor_df, aes(YearBuilt, n, fill=labels))
+floor_chart = floor_chart + geom_bar(stat="identity")
+floor_chart = floor_chart + facet_grid(labels~., scales="free")
+floor_chart = floor_chart + ylab("Number of Buildings") + xlab("")
+floor_chart = floor_chart + ggtitle("Floors by Year")
+floor_chart = floor_chart + scale_y_discrete(breaks=pretty_breaks())
+floor_chart = floor_chart + scale_fill_discrete(guide=FALSE)
+ggsave("Capofari_HW2_2.jpeg")
+floor_chart
+```
+
+###Example #3
+
+```{r comment=FALSE, message=FALSE, warning=FALSE}
+price_floor = floor(build_data$AssessTot/build_data$NumFloors)
+price_floor_condense = condense(bin(build_data$YearBuilt, 10),
+                        z=price_floor)
+P1 = autoplot(price_floor_condense)
+P1 = P1 + xlab("Year") + ylab("Average Price per Floor")
+P1 = P1 + ggtitle("Un-Smooth Data")
+P1 = P1 + scale_y_continuous(labels=dollar)
+P1 = P1 + theme(legend.position="none")
+ggsave("Capofari_HW2_3a.jpeg")
+
+#smooth
+price_floor_smooth = smooth(price_floor_condense, 
+                             20, var=".mean", type="mean")
+P2 =  autoplot(price_floor_smooth)
+P2 = P2 + xlab("Year") + ylab("Average Price per Floor")
+P2 = P2 + ggtitle("Smooth Data")
+P2 = P2 + scale_y_continuous(labels=dollar)
+P2 = P2 + theme(legend.position="none")
+ggsave("Capofari_HW2_3b.jpeg")
+
+#zoom in
+price_floor_condense = condense(bin(build_data$YearBuilt, 1),
+                        z=price_floor)
+price_floor_smooth = smooth(price_floor_condense, 
+                             20, var=".mean", type="mean")
+P3 = autoplot(price_floor_smooth[which(
+  price_floor_smooth > 1909 & price_floor_smooth < 1960),])
+P3 = P3 + xlab("Year") + ylab("Average Price per Floor")
+P3 = P3 + ggtitle("Building Data\n1925 - 1960")
+P3 = P3 + scale_y_continuous(labels=dollar)
+P3 = P3 + theme(legend.position="none")
+ggsave("Capofari_HW2_3c.jpeg")
+
+grid.arrange(arrangeGrob(P1,P2),P3,ncol=2)
+```
+
+```{r comment=FALSE, message=FALSE, warning=FALSE}
+P4 = autoplot(price_floor_condense[which(
+  price_floor_smooth > 1909 & price_floor_smooth < 1960),])
+P4 = P4 + xlab("Year") + ylab("Average Price per Floor")
+P4 = P4 + ggtitle("Building Data\n1925 - 1960")
+P4 = P4 + scale_y_continuous(labels=dollar)
+P4 = P4 + theme(legend.position="none")
+ggsave("Capofari_HW2_3d.jpeg")
+P4
+```
+
+Looks like there is a dip during WWII.  But wait, if we look at the data before the smoothing process, this dip could be attributed to the large spikes that we can see in 1933.
+
