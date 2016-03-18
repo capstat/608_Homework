@@ -3,7 +3,7 @@ library(dplyr)
 library(shiny)
 
 #get the csv file from github
-state_df = read.csv("https://raw.githubusercontent.com/jlaurito/CUNY_IS608/master/lecture3/data/cleaned-cdc-mortality-1999-2010.csv",
+state_df = read.csv("cleaned-cdc-mortality-1999-2010.csv",
                     stringsAsFactors=FALSE)
 
 #keep only columns were interested in
