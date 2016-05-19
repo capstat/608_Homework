@@ -1,0 +1,51 @@
+.legend {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+path {
+	stroke-width:2;
+	fill:none;
+}
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+.styled-select select {
+	background: transparent;
+	width: 268px;
+	padding: 5px;
+	font-size: 16px;
+	line-height: 1;
+	border: 1px solid #ccc;
+	border-radius: 1;
+	height: 42px;
+	outline: none;
+	-webkit-appearance: none;
+}
+
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 14px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}

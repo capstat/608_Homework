@@ -1,0 +1,114 @@
+---
+title: "Staten Island’s Mason Dixon Line"
+output: html_document
+---
+
+A while back, I remember reading [an article in the newspaper](http://www.nytimes.com/2003/09/25/nyregion/along-with-population-and-diversity-stress-rises-on-staten-i.html?pagewanted=all) that alluded to a Staten Island "Mason-Dixon line".  It may seem absurd but there is some truth to it.  This "Mason-Dixon line" is The Staten Island Expressway.  It "divides the northern, urban third of the borough from its more suburban southern end".
+
+According to the 2010 census, ["New York City had the largest population of self-defined black residents of any U.S. city"](https://en.wikipedia.org/wiki/Demographics_of_New_York_City#Demographic_profile).  However, Staten Island is predominantly white.  It has the highest proportion of white residents compared to the other 4 boroughs.  The [whitest neighborhood in the city](http://www.nytimes.com/interactive/2016/04/13/nyregion/segregation-and-new-york-city.html?_r=0) is the South Shore town of Tottenville.  Below is based upon 2013 census data, broken down by zip code.  (Funny thing I learned: zip code 10311 has a population of 0 so it shows up gray on the visual.)
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(choroplethrZip)
+library(ggmap)
+library(stringr)
+
+setwd("~/Documents/CUNY_SPS/608/608_Homework/d3_Final_Project")
+
+#use the stored 2013 population data
+data(df_zip_demographics)
+
+df_zip_demographics$value = df_zip_demographics[,3]
+choro_map = zip_choropleth(df_zip_demographics, title='', county_zoom=36085)
+
+#store the map data in a df
+map_df <- choro_map$data[ , c('long', 'lat', 'id', 'value')]
+#map_df values need to be adjusted
+map_df$value = str_replace(map_df$value, "\\[18 to 34\\)", "26")
+map_df$value = str_replace(map_df$value, "\\[34 to 43\\)", "38.5")
+map_df$value = str_replace(map_df$value, "\\[43 to 77\\)", "60")
+map_df$value = str_replace(map_df$value, "\\[77 to 85\\)", "81")
+map_df$value = str_replace(map_df$value, "\\[85\\]", "85")
+map_df$value = as.numeric(map_df$value)
+
+#get a bounding box for a street map
+leftbox = min(choro_map$data$long)
+bottombox = min(choro_map$data$lat)
+rightbox = max(choro_map$data$long)
+topbox = max(choro_map$data$lat)
+
+mapGoog = get_map(location = c(leftbox, bottombox, 
+                               rightbox, topbox),
+                  source = 'google', maptype = 'satellite')
+
+gmap = ggmap(mapGoog)
+
+#get points
+si_exp = read.csv("data/si_exp.csv")
+
+mason_dixon = ggmap(mapGoog)
+mason_dixon = mason_dixon +
+  geom_polygon(data = map_df, aes(
+    x=long, y=lat, fill=value, group=id)) 
+mason_dixon = mason_dixon + 
+  scale_fill_continuous(low="grey", high="blue", limits=c(20,90),
+                        name="White Population (%)")
+mason_dixon = mason_dixon +
+  geom_smooth(data=si_exp, color="yellow", size=2,
+            aes(x=long, y=lat))
+mason_dixon = mason_dixon + theme(
+  axis.ticks=element_blank(),
+  axis.text.x=element_blank(),
+  axis.text.y=element_blank())
+mason_dixon = mason_dixon + xlab("") + ylab("") +
+  ggtitle("Staten Island Demographics by Zip Code")
+mason_dixon = mason_dixon + 
+  annotate("text", y=40.610, x=-74.12, 
+           label="Staten Island\nExpressway",
+           color="yellow")
+
+mason_dixon
+```
+
+I live on the North Shore of Staten Island.  I went to a high school in the middle of the Island and my relationship with the kids I met from the South Shore was a lot like [this](http://www.goodreads.com/book/show/231804.The_Outsiders).  Currently, I play in a basketball league on the Southern tip of the Island, in Tottenville.  It takes me over 20 minutes to get there and it sure doesn't feel like New York City when I arrive.
+
+Does Staten Island have a "Mason-Dixon line"? When you take the same visual from above but use the the black % of the population as the fill value the Island's demographic division becomes starker.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#what if we look at the black population
+df_zip_demographics$value = df_zip_demographics[,4]
+choro_map = zip_choropleth(df_zip_demographics, title='', county_zoom=36085)
+
+#store the map data in a df
+map_df <- choro_map$data[ , c('long', 'lat', 'id', 'value')]
+#map_df values need to be adjusted
+map_df$value = str_replace(map_df$value, "\\[24 to 34\\)", "29")
+map_df$value = str_replace(map_df$value, "\\[0 to 2\\)", "1")
+map_df$value = str_replace(map_df$value, "\\[19 to 24\\)", "21.5")
+map_df$value = as.numeric(map_df$value)
+
+mason_dixon2 = ggmap(mapGoog)
+mason_dixon2 = mason_dixon2 +
+  geom_polygon(data = map_df, aes(
+    x=long, y=lat, fill=value, group=id)) 
+mason_dixon2 = mason_dixon2 + 
+  scale_fill_continuous(low="grey", high="blue", limits=c(0,34),
+                        name="Black Population (%)")
+mason_dixon2 = mason_dixon2 +
+  geom_smooth(data=si_exp, color="yellow", size=2,
+              aes(x=long, y=lat))
+mason_dixon2 = mason_dixon2 + theme(
+  axis.ticks=element_blank(),
+  axis.text.x=element_blank(),
+  axis.text.y=element_blank())
+mason_dixon2 = mason_dixon2 + xlab("") + ylab("") +
+  ggtitle("Staten Island Demographics by Zip Code")
+mason_dixon2 = mason_dixon2 + 
+  annotate("text", y=40.610, x=-74.12, 
+           label="Staten Island\nExpressway",
+           color="yellow")
+
+mason_dixon2
+```
+
+[*Keep Reading*](si_rest.html)  
+[*Home*](home.html)

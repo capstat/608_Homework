@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+ 	<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- try to make this mobile friendly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <title>Stat Island --- Crime Rates</title>
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <h1>Staten Island's Crime Rates</h1>
+    <div id="post">
+    	<p>
+        What's so amazing about <a href="pop_stat_island.html">Staten Island's population boom</a> is that, during this same time period, crime rates have decreased.  Staten Island has been able to double its size and remain the safest place to live in New York City.
+      </p>
+      <p>
+       	My Father-in-Law, a life long Staten Islander, remembers the first time a Staten Island murder was covered in the newspaper, <a href="http://nomadicjoe.blogspot.com/2009/10/life-magazine-strange-case-of-nimer.html">the sensational Nimer case</a>.  At the time, it was unbelieavble that such an incident could occur on Staten Island.  The Island was a quiet place.  It was only reachable by Manhattan via ferry.  Violent crimes were rare (and still are) when compared to other cities of the same population.    
+      </p>
+      <p>
+      	However, recently, these low crime rates are being threatened.  <a href="http://www.nytimes.com/2015/10/24/us/politics/fbi-chief-links-scrutiny-of-police-with-rise-in-violent-crime.html">Crime rates for cities across the country have crept up</a> since the summer of 2015.  Local law enforcemnet is doing everything possible to keep rates steady. This may prove difficult. Staten Island is suffering from <a href="http://www.silive.com/news/index.ssf/2016/03/da_9_fatal_drug_overdoses_on_s.html">America's opioid drug epidemic</a> and will have challenges dealing with the influx of people that current developments are projected to bring to the Island.
+      </p>
+    </div>
+ 		<!-- bring in the helper libraries and APIs -->
+ 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+ 		<script src="jquery.csv.min.js"></script>
+ 		<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+ 		<script type="text/javascript">
+  		google.load('visualization', '1', { packages: ['corechart', 'controls'] });
+		</script>
+		<!-- javascript file -->
+		<script type="text/javascript" src="sicr.js"></script>
+		<!-- holds the chart -->
+		<div id="chart"></div>
+		<div class="styled-select">
+  		<select id = "rate", onchange="drawVisualization();">
+    		<option value = "All Violent Crimes">Please select...</option>
+    		<option value = "All Violent Crimes">All Violent Crimes</option>
+    		<option value = "Murder">Murder</option>
+    		<option value = "Robbery">Robbery</option>
+    		<option value = "Aggravated Assault">Aggravated Assault</option>
+  		</select>
+		</div>
+		<p><a href="mason_dixon.html"><em>Keep Reading</em></a><br /><a href="home.html"><em>Home</em></a></p>
+	</body>
+</html>

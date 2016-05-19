@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+ 	<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- try to make this mobile friendly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <title>Stat Island --- Restaraunts</title>
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <h1>New York City Restaurants</h1>
+    <!--<script src="http://d3js.org/d3.v3.min.js"></script>-->
+    <script type="text/javascript" src="d3/d3.min.js"></script>
+    <div id="post">
+      <p>
+        Staten Island has great pizza.  There are also some great Italian restaurants.  But so many!  It feels like every other restaurant on the Island is either a pizza place or an Italian restaurant.
+      </p>
+      <p>
+        This is not the case.  In fact, even when you include pizza places and Italian restaurants into one super category, it is still not the most popular type of restaurant cuisine on Staten Island.  It turns out that the most popular description of restaurant cuisine is "American".  A general term that calls to mind <a href="http://www.simpsonsworld.com/video/320686147980/related/320686147980">this great spot</a>.  I didn't realize but "American", as a cuisine description, is the most popular description in the entire city.  Over 25% of restaurant cuisines are described as "American" by <a href="https://nycopendata.socrata.com/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/xx67-kt59"> the NYC restaurant inspectors</a>.
+      </p>
+      <p>
+        I wanted to find out how prevalent Italian/pizza places are on Staten Island.  I disregarded all the "American" restaurants in the data set and focused on the next most popular cuisines for each borough.  I also removed all coffee places (Starbucks, Dunkin' Donuts, etc.) as well.  Below you can see the results for all cuisines that account for more than 5% of the non-American restaurants.  Some of the categories are vague or misleading (other?, Mexican food is not the same as Tex-Mex, etc.), but this quick study provides some interesting results.  More than 1 out of 4 non-American restaurants on Staten Island are Italian/pizza places.  
+      </p>
+      <p>
+        One finding that you won't see in the visualization below is that out of the 105 Vegetarian restaraunts spread across NYC, 0 are in Staten Island.  But hey, you can get a ton of pizza and eggplant rollatini!
+      </p>
+    </div>
+    <div id="chart">
+      <script type="text/javascript" src="si_rest.js"></script>
+    </div>
+		<p><a href="home.html"><em>The End...for now...</em></a></p>
+	</body>
+</html>
